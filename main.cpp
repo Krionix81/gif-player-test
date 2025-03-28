@@ -1,8 +1,7 @@
-#include "widget.h"
-
 #include <QApplication>
 #include <QLocale>
 #include <QTranslator>
+#include "splash_widget.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,7 +16,9 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    Widget w;
+
+    SplashWidget w(QStringLiteral(":/movies/resources/ddc-movie.gif"),
+                   QStringLiteral(":/images/resources/ddc_bk.png"));
     w.show();
     return a.exec();
 }

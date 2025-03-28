@@ -1,1 +1,8 @@
-<RCC/>
+<RCC>
+    <qresource prefix="/movies">
+        <file>resources/ddc-movie.gif</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>resources/ddc_bk.png</file>
+    </qresource>
+</RCC>

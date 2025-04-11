@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/movies">
-        <file>resources/ddc-movie.gif</file>
+        <file>resources/ddc-splash.mp4</file>
     </qresource>
     <qresource prefix="/images">
         <file>resources/ddc_bk.png</file>

@@ -9,15 +9,15 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Gui Widgets LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui Widgets LinguistTools)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets LinguistTools)
 
 set(TS_FILES gif-player-test_ru_RU.ts)
 
 set(PROJECT_SOURCES
   main.cpp
-  splash_widget.cpp
-  splash_widget.h
+  video_splash.cpp
+  video_splash.h
   ${TS_FILES}
 )
 
@@ -30,7 +30,9 @@ qt_add_executable(gif-player-test
 
 qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
-target_link_libraries(gif-player-test PRIVATE Qt${QT_VERSION_MAJOR}::Gui Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(gif-player-test PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+  Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::MultimediaWidgets
+)
 
 set_target_properties(gif-player-test PROPERTIES
   ${BUNDLE_ID_OPTION}

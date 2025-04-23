@@ -5,10 +5,6 @@
 
 int main(int argc, char *argv[])
 {
-    qputenv("QT_ENABLE_HIGHDPI_SCALING", "0");
-    qputenv("QT_SCALE_FACTOR", "1");
-    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "0");
-
     QApplication a(argc, argv);
 
     QTranslator translator;
@@ -21,8 +17,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    SplashWidget splash(QStringLiteral("qrc:/movies/resources/ddc-splash.mp4"),
-                        QStringLiteral(":/images/resources/ddc_bk.png"));
+    SplashWidget splash(QStringLiteral("qrc:/movies/resources/movies/ddc-splash.mp4"),
+                        QStringLiteral(":/images/resources/images/ddc_bk.png"));
     splash.show();
 
     return a.exec();

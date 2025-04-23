@@ -1,5 +1,6 @@
 #include "video_splash.h"
 #include <QBoxLayout>
+#include <QGuiApplication>
 #include <QLabel>
 #include <QMediaMetaData>
 #include <QMediaPlayer>
@@ -36,8 +37,10 @@ SplashWidget::ContentWidget::ContentWidget(const QString &moviePath,
 
     // Movie player
     auto videoWdg = new QVideoWidget(this);
+    videoWdg->setAspectRatioMode(Qt::KeepAspectRatio);
     lt->addWidget(videoWdg, row++, col, 1, -1);
 
+    //_player->set _
     _player->setVideoOutput(videoWdg);
     connect(_player.data(),
             &QMediaPlayer::errorOccurred,
@@ -50,7 +53,7 @@ SplashWidget::ContentWidget::ContentWidget(const QString &moviePath,
                "Invalid video source!",
                Q_FUNC_INFO);
     const auto videoRes(md.toSize());
-    videoWdg->setFixedSize(videoRes);
+    videoWdg->setFixedSize(videoRes * (1. / 1.5));
     _player->setLoops(QMediaPlayer::Infinite);
     _player->play();
 
@@ -61,9 +64,14 @@ SplashWidget::ContentWidget::ContentWidget(const QString &moviePath,
 
     _textLbl = new QLabel("jfggggggggggggggggggggjfjgjfj\nrfrjfrjfjrjfjrjfrj\njrjrjrjjrjrjrjjjrjrj",
                           this);
-    //textLbl->setAttribute(Qt::WA_TranslucentBackground);
+    _textLbl->setAttribute(Qt::WA_TranslucentBackground);
     lt->addWidget(_textLbl, row, col);
     _textLbl->setStyleSheet("QLabel{border: 3px solid red;}");
+
+    /* Way to setup font
+    int loadedFontID = QFontDatabase::addApplicationFont ( ":/Triforce.ttf" );
+    QFont Triforce("Triforce", 24, QFont::Normal);
+    ui->label->setFont(Triforce);*/
 
     lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding), row, col);
 }
@@ -75,24 +83,33 @@ SplashWidget::SplashWidget(const QString &moviePath,
     : QWidget(parent, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint)
     , _contentWdg(new ContentWidget(moviePath, MOVIE_TOP_OFFSET, this))
 {
+    setAttribute(Qt::WA_NativeWindow);
+    setAttribute(Qt::WA_DontCreateNativeAncestors);
+
+    // Detect device screen scale factor
+    qreal dpiRatio(1.);
+    const auto screen = QGuiApplication::primaryScreen();
+    if (nullptr != screen)
+        dpiRatio = 1. / screen->devicePixelRatio();
+
+    // Get backgroung image and its dimensions
+    const auto tmpPix = QPixmap(bkPath);
+    Q_ASSERT_X(!tmpPix.isNull(), "Invalid background image!", Q_FUNC_INFO);
+    _contentWdg->_bkPix = tmpPix.scaled(tmpPix.size() * dpiRatio);
+    _contentWdg->setFixedSize(_contentWdg->_bkPix.size());
+
+    setMask(_contentWdg->_bkPix.createHeuristicMask());
+
+    auto pal(_contentWdg->palette());
+    pal.setBrush(QPalette::Window, QBrush{_contentWdg->_bkPix.scaled(_contentWdg->_bkPix.size())});
+    _contentWdg->setPalette(pal);
+
     auto lt = new QVBoxLayout(this);
     lt->setContentsMargins(0, 0, 0, 0);
     lt->setSpacing(0);
-
-    // Get backgroung image dimensions
-    const auto bkPix = QPixmap(bkPath);
-    Q_ASSERT_X(!bkPix.isNull(), "Invalid background image!", Q_FUNC_INFO);
-
-    _contentWdg->setFixedSize(bkPix.size());
-    auto pal(_contentWdg->palette());
-    pal.setBrush(QPalette::Window, QBrush{bkPix});
-    _contentWdg->setPalette(pal);
-
     lt->addWidget(_contentWdg.data());
-
-    setAutoFillBackground(false);
-    setMask(bkPix.createHeuristicMask());
 }
+//=================================================================================================
 
 SplashWidget::~SplashWidget() {}
 //=================================================================================================

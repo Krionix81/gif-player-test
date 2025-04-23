@@ -1,8 +1,12 @@
 <RCC>
     <qresource prefix="/movies">
-        <file>resources/ddc-splash.mp4</file>
+        <file>resources/movies/ddc-splash.mp4</file>
     </qresource>
     <qresource prefix="/images">
-        <file>resources/ddc_bk.png</file>
+        <file>resources/images/ddc_bk.png</file>
+        <file>resources/images/gers_logo.svg</file>
+    </qresource>
+    <qresource prefix="/font">
+        <file>resources/font/inter-medium.ttf</file>
     </qresource>
 </RCC>

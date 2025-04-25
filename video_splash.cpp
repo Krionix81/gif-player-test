@@ -53,7 +53,7 @@ SplashWidget::ContentWidget::ContentWidget(const QString &moviePath,
                "Invalid video source!",
                Q_FUNC_INFO);
     const auto videoRes(md.toSize());
-    videoWdg->setFixedSize(videoRes * (1. / 1.5));
+    videoWdg->setFixedSize(videoRes * 0.8);
     _player->setLoops(QMediaPlayer::Infinite);
     _player->play();
 
@@ -85,24 +85,31 @@ SplashWidget::SplashWidget(const QString &moviePath,
 {
     setAttribute(Qt::WA_NativeWindow);
     setAttribute(Qt::WA_DontCreateNativeAncestors);
+    setAttribute(Qt::WA_NoSystemBackground);
 
-    // Detect device screen scale factor
+    // Detect screen scale factor
     qreal dpiRatio(1.);
     const auto screen = QGuiApplication::primaryScreen();
     if (nullptr != screen)
         dpiRatio = 1. / screen->devicePixelRatio();
 
-    // Get backgroung image and its dimensions
+    // Get backgroung image and setup its dimensions
     const auto tmpPix = QPixmap(bkPath);
     Q_ASSERT_X(!tmpPix.isNull(), "Invalid background image!", Q_FUNC_INFO);
-    _contentWdg->_bkPix = tmpPix.scaled(tmpPix.size() * dpiRatio);
+    _contentWdg->_bkPix = tmpPix.scaled(tmpPix.size() * dpiRatio,
+                                        Qt::KeepAspectRatio,
+                                        Qt::SmoothTransformation);
+
+    // Resize container widget according background image size
     _contentWdg->setFixedSize(_contentWdg->_bkPix.size());
 
-    setMask(_contentWdg->_bkPix.createHeuristicMask());
-
+    // Fill background
     auto pal(_contentWdg->palette());
-    pal.setBrush(QPalette::Window, QBrush{_contentWdg->_bkPix.scaled(_contentWdg->_bkPix.size())});
+    pal.setBrush(QPalette::Window, QBrush{_contentWdg->_bkPix});
     _contentWdg->setPalette(pal);
+
+    // Make bottom-level widget transparent
+    setMask(_contentWdg->_bkPix.createHeuristicMask());
 
     auto lt = new QVBoxLayout(this);
     lt->setContentsMargins(0, 0, 0, 0);

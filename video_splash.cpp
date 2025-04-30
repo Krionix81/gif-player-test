@@ -1,5 +1,6 @@
 #include "video_splash.h"
 #include <QBoxLayout>
+#include <QFontDatabase>
 #include <QGuiApplication>
 #include <QLabel>
 #include <QMediaMetaData>
@@ -10,12 +11,13 @@
 #include <QVideoWidget>
 
 namespace {
+constexpr int SCR_WIDTH_PART(4);
 constexpr int MOVIE_TOP_OFFSET(28);
-}
+} // namespace
 //=================================================================================================
 
 SplashWidget::ContentWidget::ContentWidget(const QString &moviePath,
-                                           int movieTopOffset,
+                                           qreal sizeRatio,
                                            QWidget *parent /* = nullptr*/)
     : QWidget(parent)
     , _player(new QMediaPlayer(this))
@@ -32,46 +34,51 @@ SplashWidget::ContentWidget::ContentWidget(const QString &moviePath,
     auto spacer = new QWidget(this);
     spacer->setAttribute(Qt::WA_TranslucentBackground);
     spacer->setSizePolicy(spacer->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
-    spacer->setFixedHeight(movieTopOffset);
+    spacer->setFixedHeight(MOVIE_TOP_OFFSET * sizeRatio);
     lt->addWidget(spacer, row++, col, 1, -1);
 
     // Movie player
     auto videoWdg = new QVideoWidget(this);
-    videoWdg->setAspectRatioMode(Qt::KeepAspectRatio);
+    videoWdg->setAspectRatioMode(Qt::IgnoreAspectRatio /*KeepAspectRatio*/);
     lt->addWidget(videoWdg, row++, col, 1, -1);
 
-    //_player->set _
     _player->setVideoOutput(videoWdg);
+    connect(_player.data(),
+            &QMediaPlayer::mediaStatusChanged,
+            this,
+            [this, videoWdg, moviePath, sizeRatio](QMediaPlayer::MediaStatus status) {
+                if (QMediaPlayer::LoadedMedia == status) {
+                    const auto md = _player->metaData().value(QMediaMetaData::Resolution);
+                    Q_ASSERT_X(QMediaPlayer::NoError == _player->error() && !md.isNull(),
+                               "Invalid video source!",
+                               Q_FUNC_INFO);
+                    videoWdg->setFixedHeight(int(sizeRatio * md.toSize().height()));
+                    _player->play();
+                }
+            });
     connect(_player.data(),
             &QMediaPlayer::errorOccurred,
             this,
             [=](QMediaPlayer::Error error, const QString &errorString) { qDebug() << errorString; });
 
-    _player->setSource(QUrl(moviePath));
-    const auto md = _player->metaData().value(QMediaMetaData::Resolution);
-    Q_ASSERT_X(QMediaPlayer::NoError == _player->error() && !md.isNull(),
-               "Invalid video source!",
-               Q_FUNC_INFO);
-    const auto videoRes(md.toSize());
-    videoWdg->setFixedSize(videoRes * 0.8);
     _player->setLoops(QMediaPlayer::Infinite);
-    _player->play();
+    _player->setSource(QUrl(moviePath));
 
     auto logoLbl = new QLabel(this);
-    logoLbl->setFixedHeight(182);
     logoLbl->setAttribute(Qt::WA_TranslucentBackground);
     lt->addWidget(logoLbl, row, col++);
 
-    _textLbl = new QLabel("jfggggggggggggggggggggjfjgjfj\nrfrjfrjfjrjfjrjfrj\njrjrjrjjrjrjrjjjrjrj",
-                          this);
+    _textLbl = new QLabel("*******************************GERS Group********************", this);
     _textLbl->setAttribute(Qt::WA_TranslucentBackground);
     lt->addWidget(_textLbl, row, col);
-    _textLbl->setStyleSheet("QLabel{border: 3px solid red;}");
 
-    /* Way to setup font
-    int loadedFontID = QFontDatabase::addApplicationFont ( ":/Triforce.ttf" );
-    QFont Triforce("Triforce", 24, QFont::Normal);
-    ui->label->setFont(Triforce);*/
+    // Way to setup font
+    if (_fntId = QFontDatabase::addApplicationFont(
+            QStringLiteral(":/font/resources/font/inter-medium.ttf"));
+        0 <= _fntId)
+        _textLbl->setFont(QFont{QStringLiteral("Inter Medium"), 10, QFont::Normal});
+    else
+        qWarning("Failed to load splash font!");
 
     lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding), row, col);
 }
@@ -81,22 +88,33 @@ SplashWidget::SplashWidget(const QString &moviePath,
                            const QString &bkPath,
                            QWidget *parent /* = nullptr*/)
     : QWidget(parent, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint)
-    , _contentWdg(new ContentWidget(moviePath, MOVIE_TOP_OFFSET, this))
 {
     setAttribute(Qt::WA_NativeWindow);
     setAttribute(Qt::WA_DontCreateNativeAncestors);
     setAttribute(Qt::WA_NoSystemBackground);
 
-    // Detect screen scale factor
-    qreal dpiRatio(1.);
-    const auto screen = QGuiApplication::primaryScreen();
-    if (nullptr != screen)
-        dpiRatio = 1. / screen->devicePixelRatio();
-
-    // Get backgroung image and setup its dimensions
+    // Get backgroung image
     const auto tmpPix = QPixmap(bkPath);
     Q_ASSERT_X(!tmpPix.isNull(), "Invalid background image!", Q_FUNC_INFO);
-    _contentWdg->_bkPix = tmpPix.scaled(tmpPix.size() * dpiRatio,
+
+    // Detect complex screen scale factor(dpr + resolution)
+    const auto screen = QGuiApplication::primaryScreen();
+    qreal scaleFactor(1.);
+    if (nullptr != screen) {
+        scaleFactor = 1. / screen->devicePixelRatio();
+        const auto resolution(screen->size());
+        Q_ASSERT_X(resolution.width() >= tmpPix.size().width()
+                       && resolution.height() >= tmpPix.size().height(),
+                   "Display resolution fuckup!",
+                   Q_FUNC_INFO);
+        if (tmpPix.width() >= resolution.width() / SCR_WIDTH_PART)
+            scaleFactor *= resolution.width() / (qreal(tmpPix.width()) * SCR_WIDTH_PART);
+    }
+
+    _contentWdg.reset(new ContentWidget(moviePath, scaleFactor, this));
+
+    // Setup backgroung dimensions
+    _contentWdg->_bkPix = tmpPix.scaled(tmpPix.size() * scaleFactor,
                                         Qt::KeepAspectRatio,
                                         Qt::SmoothTransformation);
 
@@ -118,7 +136,11 @@ SplashWidget::SplashWidget(const QString &moviePath,
 }
 //=================================================================================================
 
-SplashWidget::~SplashWidget() {}
+SplashWidget::~SplashWidget()
+{
+    if (0 <= _contentWdg->_fntId)
+        QFontDatabase::removeApplicationFont(_contentWdg->_fntId);
+}
 //=================================================================================================
 
 QString SplashWidget::text() const

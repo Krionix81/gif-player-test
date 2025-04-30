@@ -20,12 +20,13 @@ private:
     class ContentWidget : public QWidget
     {
     public:
-        ContentWidget(const QString &, int, QWidget *parent = nullptr);
+        ContentWidget(const QString &, qreal, QWidget *parent = nullptr);
 
         QPixmap _bkPix;
         class QLabel *_textLbl;
         QScopedPointer<class QMediaPlayer> _player;
+        int _fntId;
     };
-    QScopedPointer<class ContentWidget> _contentWdg;
+    QScopedPointer<class ContentWidget> _contentWdg{nullptr};
     QPoint _mousePos; // Auxiliary mouse position for moving frameless and titleless widget
 };

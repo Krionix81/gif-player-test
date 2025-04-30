@@ -11,7 +11,7 @@
 #include <QVideoWidget>
 
 namespace {
-constexpr int SCR_WIDTH_PART(4);
+constexpr int SCR_WIDTH_PART(3);
 constexpr int MOVIE_TOP_OFFSET(28);
 } // namespace
 //=================================================================================================
@@ -65,11 +65,11 @@ SplashWidget::ContentWidget::ContentWidget(const QString &moviePath,
     _player->setSource(QUrl(moviePath));
 
     auto logoLbl = new QLabel(this);
-    logoLbl->setAttribute(Qt::WA_TranslucentBackground);
+    //logoLbl->setAttribute(Qt::WA_TranslucentBackground);
     lt->addWidget(logoLbl, row, col++);
 
     _textLbl = new QLabel("*******************************GERS Group********************", this);
-    _textLbl->setAttribute(Qt::WA_TranslucentBackground);
+    //_textLbl->setAttribute(Qt::WA_TranslucentBackground);
     lt->addWidget(_textLbl, row, col);
 
     // Way to setup font
@@ -102,7 +102,7 @@ SplashWidget::SplashWidget(const QString &moviePath,
     qreal scaleFactor(1.);
     if (nullptr != screen) {
         scaleFactor = 1. / screen->devicePixelRatio();
-        const auto resolution(screen->size());
+        const auto resolution(screen->size() * screen->devicePixelRatio());
         Q_ASSERT_X(resolution.width() >= tmpPix.size().width()
                        && resolution.height() >= tmpPix.size().height(),
                    "Display resolution fuckup!",
@@ -126,8 +126,8 @@ SplashWidget::SplashWidget(const QString &moviePath,
     pal.setBrush(QPalette::Window, QBrush{_contentWdg->_bkPix});
     _contentWdg->setPalette(pal);
 
-    // Make bottom-level widget transparent
-    setMask(_contentWdg->_bkPix.createHeuristicMask());
+    // The way to make bottom-level widget transparent(i.e. for complex shape background)
+    setMask(_contentWdg->_bkPix.mask());
 
     auto lt = new QVBoxLayout(this);
     lt->setContentsMargins(0, 0, 0, 0);

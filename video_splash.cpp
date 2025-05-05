@@ -1,5 +1,6 @@
 #include "video_splash.h"
 #include <QBoxLayout>
+#include <QDate>
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QLabel>
@@ -7,14 +8,14 @@
 #include <QMediaPlayer>
 #include <QMouseEvent>
 #include <QPainter>
-//#include <QStyleOption>
-#include <QDate>
 #include <QVideoWidget>
 
 namespace {
-constexpr int SCR_WIDTH_PART{4};
+constexpr int SCR_WIDTH_PART{1};
 constexpr int MOVIE_TOP_OFFSET{28};
 constexpr int VIDEO_HEIGHT{660};
+constexpr int COPYRIGHT_FNT_SZ{18};
+constexpr int INFO_FNT_SZ{13};
 } // namespace
 //=================================================================================================
 
@@ -26,9 +27,9 @@ SplashWidget::ContentWidget::ContentWidget(const QString &mediaPath,
 
     const auto complexSF(scaleFactors.first * scaleFactors.second);
 
-    auto lt = new QGridLayout(this);
-    lt->setContentsMargins(0, 0, 0, 0);
-    lt->setSpacing(0);
+    auto mainLt = new QGridLayout(this);
+    mainLt->setContentsMargins(0, 0, 0, 0);
+    mainLt->setSpacing(0);
 
     int row(0), col(0);
 
@@ -37,13 +38,13 @@ SplashWidget::ContentWidget::ContentWidget(const QString &mediaPath,
     spacer->setAttribute(Qt::WA_TranslucentBackground);
     spacer->setSizePolicy(spacer->sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     spacer->setFixedHeight(MOVIE_TOP_OFFSET * complexSF);
-    lt->addWidget(spacer, row++, col, 1, -1);
+    mainLt->addWidget(spacer, row++, col, 1, -1);
 
     // Media player
     auto videoWdg = new QVideoWidget(this);
     videoWdg->setAspectRatioMode(Qt::KeepAspectRatio);
     videoWdg->setFixedHeight(static_cast<int>(complexSF * VIDEO_HEIGHT));
-    lt->addWidget(videoWdg, row++, col, 1, -1);
+    mainLt->addWidget(videoWdg, row++, col, 1, -1);
 
     _player->setVideoOutput(videoWdg);
     connect(_player.data(),
@@ -75,15 +76,19 @@ SplashWidget::ContentWidget::ContentWidget(const QString &mediaPath,
     auto logoLbl = new QLabel(this);
     logoLbl->setAttribute(Qt::WA_TranslucentBackground);
     logoLbl->setAlignment(Qt::AlignCenter);
-    logoLbl->setFrameStyle(QFrame::Box | QFrame::Plain);
-    lt->addWidget(logoLbl, row, col++, -1, 1);
-
     auto logoPx{QPixmap(QStringLiteral(":/images/resources/images/gers_logo.svg"))};
     Q_ASSERT_X(!logoPx.isNull(), "Invalid logo image!", Q_FUNC_INFO);
     logoPx = logoPx.scaledToHeight(static_cast<int>(complexSF * logoPx.height()),
                                    Qt::SmoothTransformation);
     logoLbl->setPixmap(logoPx);
-    logoLbl->setFixedWidth(static_cast<int>(0.4 * logoPx.width() + logoPx.width()));
+    logoLbl->setFixedWidth(static_cast<int>(logoPx.width()));
+
+    // Intermediate layout used to set image margins according design
+    auto lt = new QVBoxLayout(this);
+    lt->setSpacing(0);
+    lt->setContentsMargins(QMargins{68, 11, 40, 35} * complexSF);
+    mainLt->addLayout(lt, row, col++, -1, 1);
+    lt->addWidget(logoLbl);
 
     // Static text information part aka copyright
     auto staticTextLbl = new QLabel(tr("© «GERS Group» Company 2010-%2<br />"
@@ -93,26 +98,28 @@ SplashWidget::ContentWidget::ContentWidget(const QString &mediaPath,
                                     this);
     staticTextLbl->setAttribute(Qt::WA_TranslucentBackground);
     staticTextLbl->setAlignment(Qt::AlignTop);
-    staticTextLbl->setFrameStyle(QFrame::Box | QFrame::Plain);
-    staticTextLbl->setIndent(12);
-    lt->addWidget(staticTextLbl, row++, col);
+
+    // Intermediate layout used to set image margins according design
+    lt = new QVBoxLayout(this);
+    lt->setSpacing(0);
+    lt->setContentsMargins(QMargins{0, 11, 0, 0} * complexSF);
+    lt->addWidget(staticTextLbl);
+    mainLt->addLayout(lt, row++, col, 1, -1);
 
     // Dynamic text to show loading information progress
-    _textLbl = new QLabel(tr("Loading..."), this);
+    _textLbl = new QLabel(tr("Loading module Surface system version 2.1.13..."), this);
     _textLbl->setAttribute(Qt::WA_TranslucentBackground);
     _textLbl->setAlignment(Qt::AlignBottom);
-    _textLbl->setFrameStyle(QFrame::Box | QFrame::Plain);
-    _textLbl->setIndent(4);
-    lt->addWidget(_textLbl, row, col);
+    mainLt->addWidget(_textLbl, row, col, 1, -1);
 
     // Font setup
     if (_fntId = QFontDatabase::addApplicationFont(
             QStringLiteral(":/font/resources/font/inter-medium.ttf"));
         0 <= _fntId) {
         auto fnt{QFont(QStringLiteral("Inter Medium"))};
-        fnt.setPixelSize(static_cast<int>(std::floor(scaleFactors.first * 12)));
+        fnt.setPixelSize(static_cast<int>(std::floor(scaleFactors.first * COPYRIGHT_FNT_SZ)));
         staticTextLbl->setFont(fnt);
-        fnt.setPixelSize(static_cast<int>(std::floor(scaleFactors.first * 10)));
+        fnt.setPixelSize(static_cast<int>(std::floor(scaleFactors.first * INFO_FNT_SZ)));
         _textLbl->setFont(fnt);
     } else {
         qWarning("Failed to load splash font!");
@@ -166,10 +173,10 @@ SplashWidget::SplashWidget(const QString &moviePath, const QString &bkPath)
     // The way to make bottom-level widget transparent(i.e. for complex shape background)
     setMask(_contentWdg->_bkPix.mask());
 
-    auto lt = new QVBoxLayout(this);
-    lt->setContentsMargins(0, 0, 0, 0);
-    lt->setSpacing(0);
-    lt->addWidget(_contentWdg.data());
+    auto mainLt = new QVBoxLayout(this);
+    mainLt->setContentsMargins(0, 0, 0, 0);
+    mainLt->setSpacing(0);
+    mainLt->addWidget(_contentWdg.data());
 
     // Сenter the window on screen taking into account the scaling done
     move(screen->availableGeometry().center() - QPoint{bkSize.width() / 2, bkSize.height() / 2});

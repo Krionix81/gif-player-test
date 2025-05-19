@@ -49,5 +49,4 @@ install(TARGETS gif-player-test
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-
 qt_finalize_executable(gif-player-test)

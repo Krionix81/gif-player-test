@@ -5,8 +5,10 @@
 class SplashWidget : public QWidget
 {
     Q_PROPERTY(QVersionNumber version READ version CONSTANT)
-    Q_PROPERTY(bool text READ text WRITE setText /*NOTIFY textChanged*/)
-    Q_PROPERTY(bool duration READ duration /*NOTIFY durationChanged*/)
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+    Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
+
+    Q_OBJECT
 
 public:
     explicit SplashWidget(const QString &, const QString &);
@@ -19,6 +21,10 @@ public:
 
     qint64 duration() const;
 
+signals:
+    void textChanged(const QString &);
+    void durationChanged(qint64);
+
 private:
     void mousePressEvent(QMouseEvent *event) final;
     void mouseMoveEvent(QMouseEvent *event) final;
@@ -27,7 +33,7 @@ private:
     class ContentWidget : public QWidget
     {
     public:
-        ContentWidget(const QString &, const std::pair<qreal, qreal> &);
+        ContentWidget(const QString &, const std::pair<qreal, qreal> &, QWidget *);
 
         QPixmap _bkPix;
         class QLabel *_textLbl;

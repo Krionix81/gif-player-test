@@ -14,14 +14,15 @@ namespace {
 constexpr int SCR_WIDTH_PART{1};
 constexpr int MOVIE_TOP_OFFSET{28};
 constexpr int VIDEO_HEIGHT{660};
-constexpr int COPYRIGHT_FNT_SZ{18};
-constexpr int INFO_FNT_SZ{13};
+constexpr int FNT_SZ{18};
 } // namespace
 //=================================================================================================
 
 SplashWidget::ContentWidget::ContentWidget(const QString &mediaPath,
-                                           const std::pair<qreal, qreal> &scaleFactors)
+                                           const std::pair<qreal, qreal> &scaleFactors,
+                                           QWidget *parent)
     : _player(new QMediaPlayer(this))
+    , QWidget(parent)
 {
     setAutoFillBackground(true);
 
@@ -84,7 +85,7 @@ SplashWidget::ContentWidget::ContentWidget(const QString &mediaPath,
     logoLbl->setFixedWidth(static_cast<int>(logoPx.width()));
 
     // Intermediate layout used to set image margins according design
-    auto lt = new QVBoxLayout(this);
+    auto lt = new QVBoxLayout();
     lt->setSpacing(0);
     lt->setContentsMargins(QMargins{68, 11, 40, 35} * complexSF);
     mainLt->addLayout(lt, row, col++, -1, 1);
@@ -99,27 +100,31 @@ SplashWidget::ContentWidget::ContentWidget(const QString &mediaPath,
     staticTextLbl->setAttribute(Qt::WA_TranslucentBackground);
     staticTextLbl->setAlignment(Qt::AlignTop);
 
-    // Intermediate layout used to set image margins according design
-    lt = new QVBoxLayout(this);
+    lt = new QVBoxLayout();
     lt->setSpacing(0);
     lt->setContentsMargins(QMargins{0, 11, 0, 0} * complexSF);
     lt->addWidget(staticTextLbl);
     mainLt->addLayout(lt, row++, col, 1, -1);
 
     // Dynamic text to show loading information progress
-    _textLbl = new QLabel(tr("Loading module Surface system version 2.1.13..."), this);
+    _textLbl = new QLabel(tr("Loading..."), this);
     _textLbl->setAttribute(Qt::WA_TranslucentBackground);
     _textLbl->setAlignment(Qt::AlignBottom);
-    mainLt->addWidget(_textLbl, row, col, 1, -1);
+
+    lt = new QVBoxLayout();
+    lt->setSpacing(0);
+    lt->setContentsMargins(QMargins{0, 0, 0, 35} * complexSF);
+    mainLt->addLayout(lt, row, col, 1, -1);
+    lt->addWidget(_textLbl);
 
     // Font setup
     if (_fntId = QFontDatabase::addApplicationFont(
             QStringLiteral(":/font/resources/font/inter-medium.ttf"));
         0 <= _fntId) {
         auto fnt{QFont(QStringLiteral("Inter Medium"))};
-        fnt.setPixelSize(static_cast<int>(std::floor(scaleFactors.first * COPYRIGHT_FNT_SZ)));
+        fnt.setPixelSize(static_cast<int>(std::floor(scaleFactors.first * FNT_SZ)));
         staticTextLbl->setFont(fnt);
-        fnt.setPixelSize(static_cast<int>(std::floor(scaleFactors.first * INFO_FNT_SZ)));
+        fnt.setPixelSize(static_cast<int>(std::floor(scaleFactors.first * FNT_SZ)));
         _textLbl->setFont(fnt);
     } else {
         qWarning("Failed to load splash font!");
@@ -154,7 +159,7 @@ SplashWidget::SplashWidget(const QString &moviePath, const QString &bkPath)
             scaleFactors.second = resolution.width() / (qreal(tmpPix.width()) * SCR_WIDTH_PART);
     }
 
-    _contentWdg.reset(new ContentWidget(moviePath, scaleFactors));
+    _contentWdg.reset(new ContentWidget(moviePath, scaleFactors, this));
 
     // Setup backgroung dimensions
     _contentWdg->_bkPix = tmpPix.scaled(tmpPix.size() * scaleFactors.first * scaleFactors.second,
@@ -198,7 +203,9 @@ QString SplashWidget::text() const
 
 void SplashWidget::setText(const QString &text)
 {
-    return _contentWdg->_textLbl->setText(text);
+    _contentWdg->_textLbl->setText(text);
+    emit textChanged(text);
+    QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 }
 //=================================================================================================
 

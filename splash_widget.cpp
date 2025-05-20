@@ -11,7 +11,7 @@
 #include <QVideoWidget>
 
 namespace {
-constexpr int SCR_WIDTH_PART{1};
+constexpr int SCR_WIDTH_PART{3};
 constexpr int MOVIE_TOP_OFFSET{28};
 constexpr int VIDEO_HEIGHT{660};
 constexpr int FNT_SZ{18};
@@ -42,7 +42,7 @@ SplashWidget::ContentWidget::ContentWidget(const QString &mediaPath,
 
     // Media player
     auto videoWdg = new QVideoWidget(this);
-    videoWdg->setAspectRatioMode(Qt::KeepAspectRatio);
+    videoWdg->setAspectRatioMode(Qt::IgnoreAspectRatio /*KeepAspectRatio*/);
     videoWdg->setFixedHeight(static_cast<int>(complexSF * VIDEO_HEIGHT));
     mainLt->addWidget(videoWdg, row++, col, 1, -1);
 

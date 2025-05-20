@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(gif-player-test VERSION 0.1 LANGUAGES CXX)
+project(splash-test VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -23,18 +23,18 @@ set(PROJECT_SOURCES
 
 qt_add_big_resources(PROJECT_SOURCES gif-player-test.qrc)
 
-qt_add_executable(gif-player-test
+qt_add_executable(splash-test
   MANUAL_FINALIZATION
   ${PROJECT_SOURCES}
 )
 
 qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
-target_link_libraries(gif-player-test PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+target_link_libraries(splash-test PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
   Qt${QT_VERSION_MAJOR}::Multimedia Qt${QT_VERSION_MAJOR}::MultimediaWidgets
 )
 
-set_target_properties(gif-player-test PROPERTIES
+set_target_properties(splash-test PROPERTIES
   ${BUNDLE_ID_OPTION}
   MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
   MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
@@ -43,10 +43,10 @@ set_target_properties(gif-player-test PROPERTIES
 )
 
 include(GNUInstallDirs)
-install(TARGETS gif-player-test
+install(TARGETS splash-test
   BUNDLE DESTINATION .
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-qt_finalize_executable(gif-player-test)
+qt_finalize_executable(splash-test)

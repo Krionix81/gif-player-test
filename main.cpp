@@ -29,14 +29,14 @@ int main(int argc, char *argv[])
     const std::array<QString, 8> appNames{"ddc", "emu", "gla", "mtr", "sc", "tms", "utl", "wdp"};
     for (auto i = 0; i < appNames.size(); ++i) {
         auto btn = new QPushButton(appNames[i], ctrlDlg.get());
-        btn->setMinimumWidth(150);
+        btn->setMinimumWidth(200);
         lt->addWidget(btn);
         QObject::connect(btn, &QPushButton::clicked, &a, [i, &appNames, &a](bool checked) {
             auto splash = new SplashWidget(
                 QStringLiteral("qrc:/movies/resources/movies/%1-mov.mp4").arg(appNames[i]),
                 QStringLiteral(":/images/resources/images/%1-bk-layer.png").arg(appNames[i]));
 
-            const auto duration(splash->duration());
+            const auto duration(/*splash->duration()*/ 3333);
             // qDebug() << splash->duration() << "ms";
             QTimer::singleShot(duration, &a, [splash]() {
                 splash->close();

@@ -16,8 +16,8 @@ set(TS_FILES gif-player-test_ru_RU.ts)
 
 set(PROJECT_SOURCES
   main.cpp
-  video_splash.cpp
-  video_splash.h
+  splash_widget.cpp
+  splash_widget.h
   ${TS_FILES}
 )
 

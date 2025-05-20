@@ -1,12 +1,28 @@
 <RCC>
     <qresource prefix="/movies">
-        <file>resources/movies/ddc-splash.mp4</file>
+        <file>resources/movies/ddc-mov.mp4</file>
+        <file>resources/movies/emu-mov.mp4</file>
+        <file>resources/movies/gla-mov.mp4</file>
+        <file>resources/movies/mtr-mov.mp4</file>
+        <file>resources/movies/sc-mov.mp4</file>
+        <file>resources/movies/tms-mov.mp4</file>
+        <file>resources/movies/utl-mov.mp4</file>
+        <file>resources/movies/wdp-mov.mp4</file>
     </qresource>
     <qresource prefix="/images">
-        <file>resources/images/ddc_bk.png</file>
-        <file>resources/images/gers_logo.svg</file>
+        <file>resources/images/ddc-bk-layer.png</file>
+        <file>resources/images/emu-bk-layer.png</file>
+        <file>resources/images/gla-bk-layer.png</file>
+        <file>resources/images/mtr-bk-layer.png</file>
+        <file>resources/images/sc-bk-layer.png</file>
+        <file>resources/images/tms-bk-layer.png</file>
+        <file>resources/images/utl-bk-layer.png</file>
+        <file>resources/images/wdp-bk-layer.png</file>
     </qresource>
     <qresource prefix="/font">
         <file>resources/font/inter-medium.ttf</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>resources/gers_logo.svg</file>
     </qresource>
 </RCC>

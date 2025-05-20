@@ -1,11 +1,11 @@
 #include <QApplication>
 #include <QDialog>
 #include <QLocale>
-#include <QSplashScreen>
+#include <QPushButton>
 #include <QTimer>
 #include <QTranslator>
 #include <QVBoxLayout>
-#include "video_splash.h"
+#include "splash_widget.h"
 
 int main(int argc, char *argv[])
 {
@@ -23,26 +23,36 @@ int main(int argc, char *argv[])
         }
     }
 
-    enum class AppType { MTR = 0, EMU, DDC, TMS, WDP, UTL, SC, GLA };
     auto ctrlDlg = std::make_unique<QDialog>(nullptr);
     auto lt = new QVBoxLayout(ctrlDlg.get());
 
-    auto splash = std::make_unique<SplashWidget>(QStringLiteral(
-                                                     "qrc:/movies/resources/movies/ddc-splash.mp4"),
-                                                 QStringLiteral(
-                                                     ":/images/resources/images/ddc_bk.png"));
-    const auto duration(splash->duration());
-    // qDebug() << splash->duration() << "ms";
-    QTimer::singleShot(duration, &a, [&splash]() { splash->close(); });
+    const std::array<QString, 8> appNames{"ddc", "emu", "gla", "mtr", "sc", "tms", "utl", "wdp"};
+    for (auto i = 0; i < appNames.size(); ++i) {
+        auto btn = new QPushButton(appNames[i], ctrlDlg.get());
+        btn->setMinimumWidth(150);
+        lt->addWidget(btn);
+        QObject::connect(btn, &QPushButton::clicked, &a, [i, &appNames, &a](bool checked) {
+            auto splash = new SplashWidget(
+                QStringLiteral("qrc:/movies/resources/movies/%1-mov.mp4").arg(appNames[i]),
+                QStringLiteral(":/images/resources/images/%1-bk-layer.png").arg(appNames[i]));
 
-    // Dynamic text test
-    for (int i(1); i < 10; ++i) {
-        QTimer::singleShot(i * duration / 10, &a, [&splash, i, duration]() {
-            splash->setText(QObject::tr("Loading module #%1...").arg(i));
+            const auto duration(splash->duration());
+            // qDebug() << splash->duration() << "ms";
+            QTimer::singleShot(duration, &a, [splash]() {
+                splash->close();
+                splash->deleteLater();
+            });
+
+            // Dynamic text test
+            for (int i(1); i < 10; ++i) {
+                QTimer::singleShot(i * duration / 10, &a, [splash, i]() {
+                    splash->setText(QObject::tr("Loading module #%1...").arg(i));
+                });
+            }
+            splash->show();
         });
     }
 
-    splash->show();
     ctrlDlg->show();
 
     return a.exec();
